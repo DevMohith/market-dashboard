@@ -9,7 +9,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # copy my code into your cont
 COPY . .
 # comm to run my app
-CMD ["python", "main.py"]
+CMD ["tail", "-f", "/dev/null"]
 
 
 # then run anywhere 
