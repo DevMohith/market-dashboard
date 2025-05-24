@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+google-generativeai
+python-dotenv
+qdrant-client
+pymongo
+redis
+neo4j
+httpx

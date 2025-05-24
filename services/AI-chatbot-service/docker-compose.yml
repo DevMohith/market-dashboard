@@ -1,7 +1,26 @@
 version: '3.8'
 
 services:
+
+
+  chatbot-app:
+    build:
+      context: ./app
+    container_name: mohith-chatbot
+    env_file:
+      - .env
+    depends_on:
+      - mongodb
+      - redis
+      - neo4j
+      - qdrant
+    networks:
+      - mohith-network
+    ports:
+      - "8000:8000"
   
+
+
   mongodb:
     image: mongo
     container_name: mohith-mongo
