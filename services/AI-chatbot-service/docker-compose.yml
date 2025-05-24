@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  
+  mongodb:
+    image: mongo
+    container_name: mohith-mongo
+    ports:
+      - "27017:27017"
+    networks:
+      - mohith-network
+    
+
+  redis:
+    image: redis
+    container_name: mohith-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - mohith-network
+
+  neo4j:
+    image: neo4j:5
+    container_name: mohith-neo4j
+    environment:
+      - NEO4J_AUTH=${NEO4J_USER}/${NEO4J_PASSWORD}
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    networks:
+      - mohith-network
+
+  qdrant:
+    image: qdrant/qdrant
+    container_name: mohith-qdrant
+    ports:
+      - "6333:6333"
+    networks:
+      - mohith-network
+
+networks:
+  mohith-network:
