@@ -1,0 +1,15 @@
+/* Basic global styles */
+body {
+  margin: 0;
+  font-family: 'Roboto', sans-serif; /* Adjust if using a different font */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Add more global styles here, or use your UI library's styling system */
