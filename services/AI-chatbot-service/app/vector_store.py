@@ -67,4 +67,4 @@ if __name__ == "__main__":
             print(" Goodbye!")
             break
         answer = query_and_respond(question)
-        print(f" Gemini: {answer}\n")
+        print(f" QuantAI : {answer}\n")

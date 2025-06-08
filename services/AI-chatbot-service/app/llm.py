@@ -1,23 +1,22 @@
 import os
 from dotenv import load_dotenv
 import google.generativeai as genai
+from sentence_transformers import SentenceTransformer
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
-genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
+# Load env vars
+load_dotenv()
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# this model is used for generating text responses
+# Embedding model (MiniLM)
+embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+
+# Gemini 1.5 Flash LLM call
 def ask_gemini(prompt: str) -> str:
-    print("[LLM] Calling Gemini with context + question...")
-    model = genai.GenerativeModel(model_name="models/gemini-1.5-pro")
+    print("[LLM] Calling Gemini 1.5 Flash...")
+    model = genai.GenerativeModel("models/gemini-1.5-flash")
     response = model.generate_content(prompt)
     return response.text
 
-# this model is used for generating embeddings for text
 def get_embedding(text: str) -> list:
-    print(f"[Embedding] Generating embedding for: {text[:50]}...")
-    response = genai.embed_content(
-        model="models/embedding-001",
-        content=text,
-        task_type="RETRIEVAL_DOCUMENT"
-    )
-    return response["embedding"]
+    print(f"[Embedding] Generating real embedding for: {text[:50]}...")
+    return embedding_model.encode(text).tolist()

@@ -11,6 +11,8 @@ import DashboardPage from './pages/DashboardPage';
 import WatchlistPage from './pages/WatchlistPage';
 import StockDetailPage from './pages/StockDetailPage';
 import RelationshipsGraphPage from './pages/RelationshipsGraphPage';
+import ChatWidget from './components/layout/ChatWidget';
+
 //import SettingsPage from './pages/SettingsPage';
 
 // Import Redux actions/thunks
@@ -28,21 +30,20 @@ function App() {
     <Router>
       <div style={{ display: 'flex', minHeight: '100vh' }}>
         <Sidebar />
-        <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
           <Header />
           <main style={{ flexGrow: 1, padding: '20px', backgroundColor: '#f4f7fa' }}>
             <Routes>
-              {/* All routes are now directly accessible */}
               <Route path="/" element={<DashboardPage />} />
               <Route path="/stock/:symbol" element={<StockDetailPage />} />
               <Route path="/relationships" element={<RelationshipsGraphPage />} />
               <Route path="/watchlist" element={<WatchlistPage />} />
-           
-
-              {/* Catch-all for 404 */}
               <Route path="*" element={<div><h1>404: Page Not Found</h1><p>The page you are looking for does not exist.</p></div>} />
             </Routes>
           </main>
+
+          {/* Floating global chatbot widget */}
+          <ChatWidget />
         </div>
       </div>
     </Router>

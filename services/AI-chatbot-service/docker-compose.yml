@@ -44,8 +44,8 @@ services:
     environment:
       - NEO4J_AUTH=${NEO4J_USER}/${NEO4J_PASSWORD}
     ports:
-      - "7474:7474"
-      - "7687:7687"
+      - "7575:7474"
+      - "7688:7687"
     networks:
       - mohith-network
 

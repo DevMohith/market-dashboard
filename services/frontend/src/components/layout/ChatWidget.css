@@ -1,0 +1,95 @@
+.chat-widget-container {
+  position: fixed;
+  bottom: 40px;
+  right: 80px;
+  z-index: 1000;
+}
+
+
+
+.chat-toggle {
+  font-size: 24px;
+  border: none;
+  background: #007bff;
+  color: white;
+  border-radius: 50%;
+  padding: 12px;
+  cursor: pointer;
+  position: relative; 
+}
+
+
+.chat-toggle::after {
+  content: "Ask me anything about stocks";
+  position: absolute;
+  bottom: 120%; 
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  padding: 15px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+  font-size: 15px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  z-index: 999;
+}
+
+.chat-toggle:hover::after {
+  opacity: 1;
+}
+
+.chatbox {
+  width: 400px;
+  height: 400px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.chat-msg {
+  margin-bottom: 10px;
+}
+
+.chat-msg.user {
+  text-align: right;
+  color: #0d6efd;
+}
+
+.chat-msg.bot {
+  text-align: left;
+  color: #333;
+}
+
+.chat-input {
+  display: flex;
+  border-top: 1px solid #ccc;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 18px;
+  border: none;
+  outline: none;
+}
+
+.chat-input button {
+  padding: 12px;
+  padding-left: 20px;
+  border: none;
+  background: green;
+  color: white;
+  cursor: pointer;
+}

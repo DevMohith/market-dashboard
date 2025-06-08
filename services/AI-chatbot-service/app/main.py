@@ -7,10 +7,19 @@ from qdrant_client.models import PointStruct
 import os
 from dotenv import load_dotenv
 import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 QDRANT_URL = os.getenv("QDRANT_URL")
 COLLECTIONS = ["stock-insights", "news-insights"]
