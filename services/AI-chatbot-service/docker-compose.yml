@@ -10,24 +10,14 @@ services:
     env_file:
       - ./app/.env
     depends_on:
-      - mongodb
       - redis
-      - neo4j
       - qdrant
     networks:
       - mohith-network
     ports:
-      - "8000:8000"
-  
-
-
-  mongodb:
-    image: mongo
-    container_name: mohith-mongo
-    ports:
-      - "27017:27017"
-    networks:
-      - mohith-network
+      - "8008:8008"
+    volumes:
+      - ./app:/app
     
 
   redis:
@@ -35,27 +25,25 @@ services:
     container_name: mohith-redis
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
     networks:
       - mohith-network
 
-  neo4j:
-    image: neo4j:5
-    container_name: mohith-neo4j
-    environment:
-      - NEO4J_AUTH=${NEO4J_USER}/${NEO4J_PASSWORD}
-    ports:
-      - "7575:7474"
-      - "7688:7687"
-    networks:
-      - mohith-network
 
   qdrant:
     image: qdrant/qdrant
     container_name: mohith-qdrant
     ports:
       - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
     networks:
       - mohith-network
 
 networks:
   mohith-network:
+
+volumes:
+  qdrant_data:
+  redis_data:

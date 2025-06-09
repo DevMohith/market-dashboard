@@ -1,6 +1,10 @@
-numpy<2.0 
-openai
+numpy<2.0
 python-dotenv
 sentence-transformers
 qdrant-client
 httpx
+google-generativeai
+fastapi
+uvicorn
+redis
+requests

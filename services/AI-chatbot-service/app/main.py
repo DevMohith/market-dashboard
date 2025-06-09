@@ -1,12 +1,12 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from pydantic import BaseModel
 from llm import get_embedding, ask_gemini
 from vector_store import query_and_respond
+from live_stock import check_live_stock_question
 from qdrant_client import QdrantClient
 from qdrant_client.models import PointStruct
 import os
 from dotenv import load_dotenv
-import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
@@ -33,8 +33,14 @@ class QueryRequest(BaseModel):
 async def chat_endpoint(request: QueryRequest):
     query = request.question
     top_k = request.top_k
-    query_vector = get_embedding(query)
 
+    # Check for live stock question first
+    live_response = check_live_stock_question(query)
+    if live_response:
+        return {"answer": live_response}
+
+    # Otherwise fallback to Qdrant + LLM
+    query_vector = get_embedding(query)
     all_results = []
     for collection in COLLECTIONS:
         try:
