@@ -1,5 +1,5 @@
 fastapi
 uvicorn
-websockets
+websocket-client
 redis>=4.2.0
 python-dotenv

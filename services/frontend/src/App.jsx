@@ -17,13 +17,16 @@ import ChatWidget from './components/layout/ChatWidget';
 
 // Import Redux actions/thunks
 import { initAlertsWebSocket } from './features/alerts/alertsSlice';
+import { initMarketDataWebSocket } from './features/marketData/marketDataSlice';
 
 function App() {
   const dispatch = useDispatch();
 
   // Initialize WebSocket connection immediately as there's no authentication gate
   useEffect(() => {
-    dispatch(initAlertsWebSocket());
+    //dispatch(initAlertsWebSocket());
+    // This connects to the new Real-time Data Gateway for market data
+    dispatch(initMarketDataWebSocket()); // <--- NEW DISPATCH
   }, [dispatch]); // Only dispatch once on mount
 
   return (
