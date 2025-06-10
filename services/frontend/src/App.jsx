@@ -16,7 +16,6 @@ import ChatWidget from './components/layout/ChatWidget';
 //import SettingsPage from './pages/SettingsPage';
 
 // Import Redux actions/thunks
-import { initAlertsWebSocket } from './features/alerts/alertsSlice';
 import { initMarketDataWebSocket } from './features/marketData/marketDataSlice';
 
 function App() {
