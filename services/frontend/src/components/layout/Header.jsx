@@ -1,60 +1,121 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { selectUnreadAlerts, selectWebsocketConnectionStatus } from '../../features/alerts/alertsSlice'; // Adjust path as needed
+import { useSelector, useDispatch } from 'react-redux';
+import { selectUnreadAlerts, selectWebsocketConnectionStatus, markAlertAsRead, clearAlerts } from '../../features/alerts/alertsSlice';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  IconButton,
+  Badge,
+  Menu,
+  MenuItem,
+  Box,
+  Divider,
+  ListItemText // <--- ADD THIS LINE
+} from '@mui/material';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import CloseIcon from '@mui/icons-material/Close';
 
 function Header() {
+  const dispatch = useDispatch();
   const unreadAlerts = useSelector(selectUnreadAlerts);
   const isWebsocketConnected = useSelector(selectWebsocketConnectionStatus);
 
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+
+  const handleMenuClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleMarkAsRead = (alertId) => {
+    dispatch(markAlertAsRead(alertId));
+    if (unreadAlerts.length === 1) {
+        setAnchorEl(null);
+    }
+  };
+
+  const handleClearAllAlerts = () => {
+    dispatch(clearAlerts());
+    setAnchorEl(null);
+  };
+
   return (
-    <header style={{
-      backgroundColor: '#282c34',
-      color: 'white',
-      padding: '15px 20px',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-    }}>
-      <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
-        <Link to="/" style={{ color: 'white', textDecoration: 'none' }}>
-          Market Dashboard
-        </Link>
-      </div>
-      <nav>
-        <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex' }}>
-          <li style={{ marginLeft: '20px' }}>
-            <Link to="/watchlist" style={{ color: 'white', textDecoration: 'none' }}>
-              Watchlist
-            </Link>
-          </li>
-          <li style={{ marginLeft: '20px' }}>
-            <Link to="/relationships" style={{ color: 'white', textDecoration: 'none' }}>
-              Relationships
-            </Link>
-          </li>          
-          {/* Alert Indicator */}
-          <li style={{ marginLeft: '20px', position: 'relative' }}>
-            <span style={{ color: isWebsocketConnected ? 'lightgreen' : 'gray' }}>●</span> {/* Connection status indicator */}
-            Alerts {unreadAlerts.length > 0 && (
-              <span style={{
-                backgroundColor: 'red',
-                color: 'white',
-                borderRadius: '50%',
-                padding: '2px 6px',
-                fontSize: '12px',
-                position: 'absolute',
-                top: '-8px',
-                right: '-8px'
-              }}>
-                {unreadAlerts.length}
-              </span>
+    <AppBar position="static" sx={{ backgroundColor: '#282c34', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+      <Toolbar>
+        <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+          <Link to="/" style={{ color: 'white', textDecoration: 'none' }}>
+            Market Dashboard
+          </Link>
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Button color="inherit" component={Link} to="/watchlist">
+            Watchlist
+          </Button>
+          <Button color="inherit" component={Link} to="/relationships">
+            Relationships
+          </Button>
+          <Button color="inherit" component={Link} to="/settings">
+            Settings
+          </Button>
+
+          {/* Alert Indicator and Dropdown */}
+          <IconButton
+            color="inherit"
+            aria-label="show alerts"
+            onClick={handleMenuClick}
+            sx={{ ml: 2 }}
+          >
+            <Badge badgeContent={unreadAlerts.length} color="error">
+              <NotificationsIcon />
+            </Badge>
+          </IconButton>
+          <Typography variant="caption" sx={{ ml: 1, color: isWebsocketConnected ? 'lightgreen' : 'gray' }}>
+            ●
+          </Typography>
+          <Menu
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleMenuClose}
+            MenuListProps={{
+              'aria-labelledby': 'basic-button',
+            }}
+          >
+            <MenuItem disabled>
+                <Typography variant="subtitle2" sx={{fontWeight: 'bold'}}>Notifications</Typography>
+            </MenuItem>
+            <Divider />
+            {unreadAlerts.length === 0 ? (
+              <MenuItem onClick={handleMenuClose}>No new alerts</MenuItem>
+            ) : (
+              <>
+                {unreadAlerts.map((alert) => (
+                  <MenuItem key={alert.id} onClick={() => handleMarkAsRead(alert.id)}>
+                    <ListItemText // This is the component that was not defined
+                      primary={alert.symbol + ": " + alert.message}
+                      secondary={new Date(parseInt(alert.timestamp)).toLocaleString()} // Ensure timestamp is parsed
+                    />
+                    <IconButton edge="end" size="small" onClick={(e) => { e.stopPropagation(); handleMarkAsRead(alert.id); }}>
+                        <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </MenuItem>
+                ))}
+                <Divider />
+                <MenuItem onClick={handleClearAllAlerts}>
+                  <Typography color="primary">Clear All Alerts</Typography>
+                </MenuItem>
+              </>
             )}
-          </li>
-        </ul>
-      </nav>
-    </header>
+          </Menu>
+        </Box>
+      </Toolbar>
+    </AppBar>
   );
 }
 

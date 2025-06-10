@@ -8,7 +8,7 @@ import redis.asyncio as redis
 from dotenv import load_dotenv
 from typing import List
 from websocket import WebSocketApp
-import time # <--- ADD THIS LINE
+import time # <--- ADDED THIS LINE
 
 # Load environment variables
 load_dotenv()
@@ -17,6 +17,7 @@ load_dotenv()
 FINNHUB_API_KEY_LOADED = os.getenv("FINNHUB_API_KEY")
 print(f"DEBUG: FINNHUB_API_KEY loaded: {FINNHUB_API_KEY_LOADED[:5]}... (Full length: {len(FINNHUB_API_KEY_LOADED) if FINNHUB_API_KEY_LOADED else 'N/A'})")
 # --- END CORRECTED INDENTATION ---
+
 # FastAPI app
 app = FastAPI()
 
@@ -171,6 +172,10 @@ def start_finnhub_websocket_thread_manager():
     # Only create and start the thread if it's not already running
     if not hasattr(app.state, 'finnhub_ws_thread') or not app.state.finnhub_ws_thread.is_alive():
         print("Initializing central Finnhub WebSocket connection and thread...")
+        
+        # This debug print is already in place from previous steps
+        # print(f"DEBUG: Finnhub WS connecting with key: '{FINNHUB_API_KEY}' (Length: {len(FINNHUB_API_KEY) if FINNHUB_API_KEY else 'N/A'})")
+
         finnhub_ws_url = f"wss://ws.finnhub.io?token={FINNHUB_API_KEY}"
         app.state.finnhub_ws_app = WebSocketApp(
             finnhub_ws_url,
@@ -184,7 +189,7 @@ def start_finnhub_websocket_thread_manager():
             daemon=True
         )
         app.state.finnhub_ws_thread.start()
-        time.sleep(1) # Give it time to connect # <--- THIS LINE IS NOW CORRECTED
+        time.sleep(1) # Give it time to connect
 
     # If already connected, or just connected, send subscriptions for active tickers.
     # The on_open_finnhub will handle initial subscriptions.
@@ -223,6 +228,12 @@ async def subscribe_tickers(tickers: List[str], background_tasks: BackgroundTask
 # Add a test endpoint for easy subscription from browser
 @app.get("/test_subscribe/")
 async def test_subscribe_endpoint(background_tasks: BackgroundTasks):
-    default_tickers = ["AAPL", "MSFT", "GOOG", "AMZN", "TSLA"] # More tickers for better data flow
+    # EXPANDED LIST OF TICKERS (50 unique popular symbols)
+    default_tickers = [
+        "AAPL", "MSFT", "GOOG", "AMZN", "TSLA", "NVDA", "NFLX", "META", "IBM", "ORCL"
+        # "JPM", "V", "MA", "DIS", "KO", "PEP", "INTC", "CSCO", "CMCSA", "T",
+        # "VZ", "ADBE", "CRM", "PYPL", "SBUX", "COST", "HD", "PG", "NKE", "WMT",
+        # "XOM", "CVX", "BAC", "WFC", "GS", "MS", "C", "PFE", "JNJ", "UNH",
+        # "MRK", "ABBV", "LLY", "MCD", "BA", "GE", "CAT", "MMM", "GSK", "BHP" # Added more tickers
+    ]
     return await subscribe_tickers(default_tickers, background_tasks)
-

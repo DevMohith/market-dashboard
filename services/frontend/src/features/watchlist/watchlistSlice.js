@@ -1,49 +1,102 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-// import { fetchWatchlistApi, addStockToWatchlistApi, removeStockFromWatchlistApi } from '../../services/watchlistService'; // You'll create these
+import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
+import { getPseudoUserId } from '../../utils/userId'; // Import pseudo user ID utility
+
+// Async Thunk to fetch watchlist from backend
+export const fetchWatchlist = createAsyncThunk(
+  'watchlist/fetchWatchlist',
+  async (_, { rejectWithValue }) => {
+    try {
+      const userId = getPseudoUserId();
+      const response = await fetch(`${import.meta.env.VITE_APP_WATCHLIST_API_URL}/watchlist/${userId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch watchlist');
+      }
+      const data = await response.json();
+      return data.stocks; // Assuming the backend returns { user_id: "...", stocks: ["AAPL", "MSFT"] }
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+// Async Thunk to save watchlist to backend
+export const saveWatchlist = createAsyncThunk(
+  'watchlist/saveWatchlist',
+  async (stocks, { rejectWithValue }) => {
+    try {
+      const userId = getPseudoUserId();
+      const response = await fetch(`${import.meta.env.VITE_APP_WATCHLIST_API_URL}/watchlist`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_id: userId, stocks }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to save watchlist');
+      }
+      const data = await response.json();
+      return data.stocks; // Return the confirmed list of stocks
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 
 const watchlistSlice = createSlice({
   name: 'watchlist',
   initialState: {
-    items: [], // Array of stock symbols or objects {symbol: 'AAPL', name: 'Apple'}
+    items: [], // Array of stock symbols, e.g., ["AAPL", "MSFT"]
     status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
     error: null,
   },
   reducers: {
-    addStock: (state, action) => {
-      // Ensure no duplicates
-      if (!state.items.some(item => item.symbol === action.payload.symbol)) {
-        state.items.push(action.payload);
+    addStockToWatchlist: (state, action) => {
+      const stockSymbol = action.payload.toUpperCase();
+      if (!state.items.includes(stockSymbol)) {
+        state.items.push(stockSymbol);
       }
     },
-    removeStock: (state, action) => {
-      state.items = state.items.filter(item => item.symbol !== action.payload); // Payload is symbol
-    },
-    setWatchlist: (state, action) => {
-      state.items = action.payload;
+    removeStockFromWatchlist: (state, action) => {
+      const stockSymbol = action.payload.toUpperCase();
+      state.items = state.items.filter(item => item !== stockSymbol);
     },
   },
   extraReducers: (builder) => {
-    // You would add async thunks here for fetching/updating watchlist from backend
-    // For example:
-    // builder
-    //   .addCase(fetchWatchlist.pending, (state) => { state.status = 'loading'; })
-    //   .addCase(fetchWatchlist.fulfilled, (state, action) => { state.status = 'succeeded'; state.items = action.payload; })
-    //   .addCase(fetchWatchlist.rejected, (state, action) => { state.status = 'failed'; state.error = action.error.message; });
+    builder
+      // Fetch Watchlist
+      .addCase(fetchWatchlist.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchWatchlist.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.items = action.payload;
+      })
+      .addCase(fetchWatchlist.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+      // Save Watchlist
+      .addCase(saveWatchlist.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(saveWatchlist.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        // The items are already updated by add/remove reducers,
+        // this just confirms saving was successful or updates if backend returned changed list
+        state.items = action.payload;
+      })
+      .addCase(saveWatchlist.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      });
   },
 });
 
-export const { addStock, removeStock, setWatchlist } = watchlistSlice.actions;
-
-// Example async thunk (uncomment and implement when you have watchlistService)
-// export const fetchWatchlist = createAsyncThunk(
-//   'watchlist/fetchWatchlist',
-//   async (_, { getState }) => {
-//     const userId = getState().auth.user.id; // Assuming user ID is in auth state
-//     const response = await fetchWatchlistApi(userId);
-//     return response.data;
-//   }
-// );
+export const { addStockToWatchlist, removeStockFromWatchlist } = watchlistSlice.actions;
 
 export const selectWatchlistItems = (state) => state.watchlist.items;
+export const selectWatchlistStatus = (state) => state.watchlist.status;
 
 export default watchlistSlice.reducer;
