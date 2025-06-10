@@ -1,7 +1,6 @@
-// src/features/alerts/alertsSlice.js
 import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
-// FIX: Correct the import path and function names
-import { connectRealtimeWebSocket, closeRealtimeWebSocket } from '../../services/realtimeDataService';
+// Ensure this import points to your real-time data service, not the new alerts one
+import { connectRealtimeWebSocket } from '../../services/realtimeDataService'; // This service will handle general WS connections
 
 const alertsSlice = createSlice({
   name: 'alerts',
@@ -13,7 +12,10 @@ const alertsSlice = createSlice({
   },
   reducers: {
     addAlert: (state, action) => {
-      state.currentAlerts.unshift(action.payload);
+      // Ensure unique IDs for alerts, or handle duplicates
+      if (!state.currentAlerts.some(alert => alert.id === action.payload.id)) {
+        state.currentAlerts.unshift(action.payload);
+      }
     },
     markAlertAsRead: (state, action) => {
       const alertId = action.payload;
@@ -46,38 +48,35 @@ const alertsSlice = createSlice({
 
 export const { addAlert, markAlertAsRead, setWebsocketConnectionStatus, clearAlerts } = alertsSlice.actions;
 
-// Async Thunk for WebSocket Initialization - SIMPLIFIED
 export const initAlertsWebSocket = createAsyncThunk(
   'alerts/initAlertsWebSocket',
   async (_, { dispatch }) => {
-    const wsUrl = `${import.meta.env.VITE_APP_API_WS_URL}/ws/alerts`;
-    console.log(`Attempting to connect to WebSocket at: ${wsUrl}`);
+    // --- USE THE NEW ALERTS WS URL ---
+    const wsUrl = import.meta.env.VITE_APP_ALERTS_WS_URL;
+    console.log(`Attempting to connect to Alerts WebSocket at: ${wsUrl}`);
 
-    // FIX: Use the correct function name here
-    connectRealtimeWebSocket(wsUrl, { // Changed from connectAlertsWebSocket
+    // Re-use connectRealtimeWebSocket function for alerts WS
+    connectRealtimeWebSocket(wsUrl, {
       onOpen: () => {
         dispatch(setWebsocketConnectionStatus(true));
-        console.log('Alerts WebSocket connected.');
+        console.log('✅ Alerts WebSocket connected.');
       },
       onMessage: (event) => {
-        const data = JSON.parse(event.data);
-        const newAlert = {
-          id: Date.now().toString(),
-          stockSymbol: data.symbol,
-          type: data.type,
-          message: data.message,
-          timestamp: new Date().toISOString(),
-          isRead: false,
-        };
-        dispatch(addAlert(newAlert));
+        try {
+          const data = JSON.parse(event.data);
+          // Assuming alert data structure: { id, symbol, type, message, timestamp }
+          dispatch(addAlert(data));
+        } catch (e) {
+          console.error("Error parsing alerts WebSocket message:", e, event.data);
+        }
       },
       onClose: () => {
         dispatch(setWebsocketConnectionStatus(false));
-        console.log('Alerts WebSocket disconnected.');
-        // Consider implementing reconnection logic here if needed for robustness
+        console.log('🛑 Alerts WebSocket disconnected.');
+        // Implement reconnection logic here if desired
       },
       onError: (error) => {
-        console.error('Alerts WebSocket error:', error);
+        console.error('❌ Alerts WebSocket error:', error);
       },
     });
   }

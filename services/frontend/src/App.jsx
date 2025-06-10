@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'; // Removed Navigate as it's not needed without PrivateRoute
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 
 // Import Layout Components
@@ -12,27 +12,28 @@ import WatchlistPage from './pages/WatchlistPage';
 import StockDetailPage from './pages/StockDetailPage';
 import RelationshipsGraphPage from './pages/RelationshipsGraphPage';
 import ChatWidget from './components/layout/ChatWidget';
-
-//import SettingsPage from './pages/SettingsPage';
+// import SettingsPage from './pages/SettingsPage'; // Uncomment if you add this page back
 
 // Import Redux actions/thunks
 import { initMarketDataWebSocket } from './features/marketData/marketDataSlice';
+import { initAlertsWebSocket } from './features/alerts/alertsSlice'; // <--- NEW: Import alerts WebSocket initializer
 
 function App() {
   const dispatch = useDispatch();
 
-  // Initialize WebSocket connection immediately as there's no authentication gate
+  // Initialize WebSocket connections immediately as there's no authentication gate
   useEffect(() => {
-    //dispatch(initAlertsWebSocket());
-    // This connects to the new Real-time Data Gateway for market data
-    dispatch(initMarketDataWebSocket()); // <--- NEW DISPATCH
-  }, [dispatch]); // Only dispatch once on mount
+    // This connects to the Anomaly Detection Service for alerts
+    dispatch(initAlertsWebSocket()); // <--- UNCOMMENTED AND ENABLED
+    // This connects to the Real-time Data Gateway for market data
+    dispatch(initMarketDataWebSocket());
+  }, [dispatch]); // Only dispatch once on mount, or if dispatch changes (unlikely)
 
   return (
     <Router>
       <div style={{ display: 'flex', minHeight: '100vh' }}>
         <Sidebar />
-                <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
+        <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
           <Header />
           <main style={{ flexGrow: 1, padding: '20px', backgroundColor: '#f4f7fa' }}>
             <Routes>
@@ -40,6 +41,7 @@ function App() {
               <Route path="/stock/:symbol" element={<StockDetailPage />} />
               <Route path="/relationships" element={<RelationshipsGraphPage />} />
               <Route path="/watchlist" element={<WatchlistPage />} />
+              {/* <Route path="/settings" element={<SettingsPage />} /> */} {/* Uncomment if you add this page back */}
               <Route path="*" element={<div><h1>404: Page Not Found</h1><p>The page you are looking for does not exist.</p></div>} />
             </Routes>
           </main>

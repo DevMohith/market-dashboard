@@ -1,0 +1,4 @@
+fastapi
+uvicorn
+redis[async] # For async Redis client
+python-dotenv
