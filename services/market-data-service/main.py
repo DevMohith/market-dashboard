@@ -225,3 +225,4 @@ async def subscribe_tickers(tickers: List[str], background_tasks: BackgroundTask
 async def test_subscribe_endpoint(background_tasks: BackgroundTasks):
     default_tickers = ["AAPL", "MSFT", "GOOG", "AMZN", "TSLA"] # More tickers for better data flow
     return await subscribe_tickers(default_tickers, background_tasks)
+

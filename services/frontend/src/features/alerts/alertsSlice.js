@@ -1,5 +1,7 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { connectAlertsWebSocket, closeAlertsWebSocket } from '../../services/marketDataService';
+// src/features/alerts/alertsSlice.js
+import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
+// FIX: Correct the import path and function names
+import { connectRealtimeWebSocket, closeRealtimeWebSocket } from '../../services/realtimeDataService';
 
 const alertsSlice = createSlice({
   name: 'alerts',
@@ -47,12 +49,12 @@ export const { addAlert, markAlertAsRead, setWebsocketConnectionStatus, clearAle
 // Async Thunk for WebSocket Initialization - SIMPLIFIED
 export const initAlertsWebSocket = createAsyncThunk(
   'alerts/initAlertsWebSocket',
-  async (_, { dispatch }) => { // Removed getState as token is no longer needed from auth
-    // Assuming the WebSocket doesn't require a token without user management
-    const wsUrl = `${import.meta.env.VITE_APP_API_WS_URL}/ws/alerts`; // No token needed here
+  async (_, { dispatch }) => {
+    const wsUrl = `${import.meta.env.VITE_APP_API_WS_URL}/ws/alerts`;
     console.log(`Attempting to connect to WebSocket at: ${wsUrl}`);
 
-    connectAlertsWebSocket(wsUrl, {
+    // FIX: Use the correct function name here
+    connectRealtimeWebSocket(wsUrl, { // Changed from connectAlertsWebSocket
       onOpen: () => {
         dispatch(setWebsocketConnectionStatus(true));
         console.log('Alerts WebSocket connected.');
@@ -82,7 +84,10 @@ export const initAlertsWebSocket = createAsyncThunk(
 );
 
 export const selectAllAlerts = (state) => state.alerts.currentAlerts;
-export const selectUnreadAlerts = (state) => state.alerts.currentAlerts.filter(alert => !alert.isRead);
+export const selectUnreadAlerts = createSelector(
+  [(state) => state.alerts.currentAlerts],
+  (currentAlerts) => currentAlerts.filter(alert => !alert.isRead)
+);
 export const selectWebsocketConnectionStatus = (state) => state.alerts.websocketConnected;
 
 export default alertsSlice.reducer;
