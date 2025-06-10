@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
-// Ensure this import points to your real-time data service, not the new alerts one
-import { connectRealtimeWebSocket } from '../../services/realtimeDataService'; // This service will handle general WS connections
+import { connectRealtimeWebSocket } from '../../services/realtimeDataService';
+import { getPseudoUserId } from '../../utils/userId';
+import { selectWatchlistItems } from '../watchlist/watchlistSlice'; // Keep this import, it's used in the thunk
 
 const alertsSlice = createSlice({
   name: 'alerts',
@@ -11,9 +12,12 @@ const alertsSlice = createSlice({
     error: null,
   },
   reducers: {
+    // This reducer now simply adds the alert without any filtering logic.
+    // Filtering is done BEFORE this action is dispatched.
     addAlert: (state, action) => {
       // Ensure unique IDs for alerts, or handle duplicates
       if (!state.currentAlerts.some(alert => alert.id === action.payload.id)) {
+        console.log(`AddAlert Reducer: Adding alert for ${action.payload.symbol}.`);
         state.currentAlerts.unshift(action.payload);
       }
     },
@@ -50,12 +54,11 @@ export const { addAlert, markAlertAsRead, setWebsocketConnectionStatus, clearAle
 
 export const initAlertsWebSocket = createAsyncThunk(
   'alerts/initAlertsWebSocket',
-  async (_, { dispatch }) => {
-    // --- USE THE NEW ALERTS WS URL ---
-    const wsUrl = import.meta.env.VITE_APP_ALERTS_WS_URL;
+  async (_, { dispatch, getState }) => { // getState is crucial here
+    const userId = getPseudoUserId();
+    const wsUrl = `${import.meta.env.VITE_APP_ALERTS_WS_URL}/ws/alerts/${userId}`;
     console.log(`Attempting to connect to Alerts WebSocket at: ${wsUrl}`);
 
-    // Re-use connectRealtimeWebSocket function for alerts WS
     connectRealtimeWebSocket(wsUrl, {
       onOpen: () => {
         dispatch(setWebsocketConnectionStatus(true));
@@ -64,8 +67,21 @@ export const initAlertsWebSocket = createAsyncThunk(
       onMessage: (event) => {
         try {
           const data = JSON.parse(event.data);
-          // Assuming alert data structure: { id, symbol, type, message, timestamp }
-          dispatch(addAlert(data));
+          console.log('FRONTEND: Received raw alert data:', data); // Log the raw alert
+
+          // --- NEW: Perform filtering *before* dispatching the addAlert action ---
+          const state = getState(); // Get the current Redux state
+          const currentWatchlist = selectWatchlistItems(state); // Use the selector to get the watchlist array
+          const incomingSymbol = data.symbol.toUpperCase();
+
+          if (currentWatchlist.includes(incomingSymbol)) {
+            console.log(`FRONTEND: Filtering: Adding alert for ${incomingSymbol} (on watchlist).`);
+            dispatch(addAlert(data)); // Dispatch action only if it passes the filter
+          } else {
+            console.log(`FRONTEND: Filtering: Ignoring alert for ${incomingSymbol} (not in current watchlist: ${JSON.stringify(currentWatchlist)}).`);
+          }
+          // --- END NEW ---
+
         } catch (e) {
           console.error("Error parsing alerts WebSocket message:", e, event.data);
         }
@@ -73,7 +89,6 @@ export const initAlertsWebSocket = createAsyncThunk(
       onClose: () => {
         dispatch(setWebsocketConnectionStatus(false));
         console.log('🛑 Alerts WebSocket disconnected.');
-        // Implement reconnection logic here if desired
       },
       onError: (error) => {
         console.error('❌ Alerts WebSocket error:', error);

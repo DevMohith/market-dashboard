@@ -1,91 +1,159 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { addStock, removeStock, selectWatchlistItems } from '../features/watchlist/watchlistSlice';
 import {
-  Container, Typography, Box, TextField, Button, List, ListItem,
-  ListItemText, ListItemSecondaryAction, IconButton, Paper
+  selectWatchlistItems,
+  selectWatchlistStatus,
+  addStockToWatchlist,
+  removeStockFromWatchlist,
+  fetchWatchlist,
+  saveWatchlist
+} from '../features/watchlist/watchlistSlice';
+import { selectLatestPrices } from '../features/marketData/marketDataSlice';
+import { // Ensure all Material UI components are imported here if used
+  Container, Typography, Box, TextField, Button, List, ListItem, ListItemText,
+  IconButton, CircularProgress, Alert
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 
 function WatchlistPage() {
   const dispatch = useDispatch();
-  const watchlist = useSelector(selectWatchlistItems);
-  const [newStockSymbol, setNewStockSymbol] = useState('');
+  const watchlistItems = useSelector(selectWatchlistItems);
+  const watchlistStatus = useSelector(selectWatchlistStatus); // Status of fetching, not saving
+  const latestPrices = useSelector(selectLatestPrices);
 
-  const handleAddStock = () => {
-    if (newStockSymbol.trim()) {
-      // Dispatch the addStock action with a simple stock object.
-      // In a real app, you might fetch stock details first.
-      dispatch(addStock({ symbol: newStockSymbol.toUpperCase(), name: newStockSymbol.toUpperCase() + ' Co.' }));
-      setNewStockSymbol(''); // Clear input
+  const [newStockSymbol, setNewStockSymbol] = useState('');
+  const [saveStatus, setSaveStatus] = useState('idle'); // idle | saving | saved | error
+
+  // Effect to fetch watchlist from backend on component mount (runs only once)
+  useEffect(() => {
+    dispatch(fetchWatchlist());
+  }, [dispatch]);
+
+  // IMPORTANT: The problematic useEffect that was causing infinite saves is REMOVED from here.
+  // Saving is now solely triggered by handleAddStock and handleRemoveStock.
+
+
+  const handleAddStock = async () => {
+    if (newStockSymbol.trim() && !watchlistItems.includes(newStockSymbol.toUpperCase())) {
+      const stockToAdd = newStockSymbol.toUpperCase();
+      // Prepare the updated list for saving to backend
+      const updatedWatchlistForSave = [...watchlistItems, stockToAdd]; 
+      
+      // Optimistic UI update: Dispatch immediately to update Redux state for instant feedback
+      dispatch(addStockToWatchlist(stockToAdd)); 
+      setNewStockSymbol(''); // Clear input field
+      setSaveStatus('saving'); // Show saving indicator
+
+      try {
+        // Await the save operation to the backend
+        await dispatch(saveWatchlist(updatedWatchlistForSave)).unwrap(); 
+        setSaveStatus('saved'); // Indicate success
+      } catch (error) {
+        setSaveStatus('error'); // Indicate error
+        console.error("Failed to save watchlist:", error);
+      } finally {
+        // Reset save status after a short delay, regardless of success or failure
+        const timer = setTimeout(() => setSaveStatus('idle'), 2000); 
+        return () => clearTimeout(timer);
+      }
     }
   };
 
-  const handleRemoveStock = (symbol) => {
-    // Dispatch the removeStock action
-    dispatch(removeStock(symbol));
+  const handleRemoveStock = async (symbol) => {
+    // Prepare the updated list for saving to backend
+    const updatedWatchlistForSave = watchlistItems.filter(item => item !== symbol);
+
+    // Optimistic UI update: Dispatch immediately to update Redux state
+    dispatch(removeStockFromWatchlist(symbol));
+    setSaveStatus('saving'); // Show saving indicator
+
+    try {
+      // Await the save operation to the backend
+      await dispatch(saveWatchlist(updatedWatchlistForSave)).unwrap(); 
+      setSaveStatus('saved'); // Indicate success
+    } catch (error) {
+      setSaveStatus('error'); // Indicate error
+      console.error("Failed to save watchlist:", error);
+    } finally {
+      // Reset save status after a short delay
+      const timer = setTimeout(() => setSaveStatus('idle'), 2000);
+      return () => clearTimeout(timer);
+    }
   };
 
   return (
-    <Container maxWidth="md">
-      <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 4 }}>
+    <Container maxWidth="md" sx={{ mt: 4 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
         My Watchlist
       </Typography>
 
-      {/* Add New Stock Section */}
-      <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h6" gutterBottom>Add New Stock</Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <TextField
-            label="Stock Symbol (e.g., AAPL)"
-            variant="outlined"
-            value={newStockSymbol}
-            onChange={(e) => setNewStockSymbol(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handleAddStock();
-              }
-            }}
-            fullWidth
-          />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleAddStock}
-            sx={{ px: 4 }}
-          >
-            Add
-          </Button>
-        </Box>
-      </Paper>
+      <Box sx={{ mb: 3 }}>
+        <TextField
+          label="Add Stock Symbol"
+          variant="outlined"
+          value={newStockSymbol}
+          onChange={(e) => setNewStockSymbol(e.target.value)}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter') handleAddStock();
+          }}
+          sx={{ mr: 2 }}
+        />
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={handleAddStock}
+          disabled={!newStockSymbol.trim() || saveStatus === 'saving'} // Disable button while saving
+        >
+          Add to Watchlist
+        </Button>
+      </Box>
 
-      {/* Watchlist Display Section */}
-      <Paper elevation={3} sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom>Current Watchlist ({watchlist.length} stocks)</Typography>
-        {watchlist.length === 0 ? (
-          <Typography variant="body1" color="textSecondary">
-            Your watchlist is empty. Add some stocks above!
-          </Typography>
+      {/* Display status messages for loading and saving */}
+      {watchlistStatus === 'loading' && <CircularProgress sx={{ mb: 2 }} />}
+      {watchlistStatus === 'failed' && <Alert severity="error">Error loading watchlist.</Alert>}
+
+      {saveStatus === 'saving' && <Typography variant="caption" sx={{ color: 'text.secondary' }}>Saving...</Typography>}
+      {saveStatus === 'saved' && <Typography variant="caption" sx={{ color: 'success.main' }}>Watchlist saved!</Typography>}
+      {saveStatus === 'error' && <Alert severity="error">Error saving watchlist. Check console for details.</Alert>}
+
+      <List sx={{ width: '100%', bgcolor: 'background.paper', borderRadius: 2, boxShadow: 1 }}>
+        {watchlistItems.length === 0 ? (
+          <ListItem>
+            <ListItemText primary="Your watchlist is empty. Add some stocks!" />
+          </ListItem>
         ) : (
-          <List>
-            {watchlist.map((stock) => (
-              <ListItem key={stock.symbol} divider>
-                <ListItemText
-                  primary={stock.name}
-                  secondary={stock.symbol}
-                  primaryTypographyProps={{ variant: 'h6' }}
-                  secondaryTypographyProps={{ variant: 'body2' }}
-                />
-                <ListItemSecondaryAction>
-                  <IconButton edge="end" aria-label="delete" onClick={() => handleRemoveStock(stock.symbol)}>
-                    <DeleteIcon color="error" />
+          // Map over watchlistItems to display each stock
+          watchlistItems.map((symbol) => {
+            const stockData = latestPrices[symbol]; // Get live data
+            const price = stockData ? `$${parseFloat(stockData.price).toFixed(2)}` : 'N/A';
+            const timestamp = stockData ? new Date(parseInt(stockData.timestamp)).toLocaleTimeString() : 'N/A';
+
+            return (
+              <ListItem
+                key={symbol}
+                secondaryAction={
+                  <IconButton 
+                    edge="end" 
+                    aria-label="delete" 
+                    onClick={() => handleRemoveStock(symbol)}
+                    disabled={saveStatus === 'saving'} // Disable delete button while saving
+                  >
+                    <DeleteIcon />
                   </IconButton>
-                </ListItemSecondaryAction>
+                }
+              >
+                <ListItemText
+                  primary={`${symbol}: ${price}`}
+                  secondary={`Last updated: ${timestamp}`}
+                  primaryTypographyProps={{ variant: 'h6' }}
+                  secondaryTypographyProps={{ variant: 'body2', color: 'textSecondary' }}
+                />
               </ListItem>
-            ))}
-          </List>
+            );
+          })
         )}
-      </Paper>
+      </List>
     </Container>
   );
 }

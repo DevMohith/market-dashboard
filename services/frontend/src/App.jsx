@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { getPseudoUserId } from './utils/userId'; // NEW: Import pseudo user ID utility
 
 // Import Layout Components
 import Header from './components/layout/Header';
@@ -12,22 +13,22 @@ import WatchlistPage from './pages/WatchlistPage';
 import StockDetailPage from './pages/StockDetailPage';
 import RelationshipsGraphPage from './pages/RelationshipsGraphPage';
 import ChatWidget from './components/layout/ChatWidget';
-// import SettingsPage from './pages/SettingsPage'; // Uncomment if you add this page back
 
 // Import Redux actions/thunks
 import { initMarketDataWebSocket } from './features/marketData/marketDataSlice';
-import { initAlertsWebSocket } from './features/alerts/alertsSlice'; // <--- NEW: Import alerts WebSocket initializer
+import { initAlertsWebSocket } from './features/alerts/alertsSlice';
 
 function App() {
   const dispatch = useDispatch();
 
-  // Initialize WebSocket connections immediately as there's no authentication gate
   useEffect(() => {
-    // This connects to the Anomaly Detection Service for alerts
-    dispatch(initAlertsWebSocket()); // <--- UNCOMMENTED AND ENABLED
-    // This connects to the Real-time Data Gateway for market data
+    // NEW: Initialize pseudo-user ID
+    getPseudoUserId(); // Call this once to ensure a user ID exists
+
+    // Initialize WebSocket connections
+    dispatch(initAlertsWebSocket());
     dispatch(initMarketDataWebSocket());
-  }, [dispatch]); // Only dispatch once on mount, or if dispatch changes (unlikely)
+  }, [dispatch]);
 
   return (
     <Router>
@@ -41,12 +42,10 @@ function App() {
               <Route path="/stock/:symbol" element={<StockDetailPage />} />
               <Route path="/relationships" element={<RelationshipsGraphPage />} />
               <Route path="/watchlist" element={<WatchlistPage />} />
-              {/* <Route path="/settings" element={<SettingsPage />} /> */} {/* Uncomment if you add this page back */}
               <Route path="*" element={<div><h1>404: Page Not Found</h1><p>The page you are looking for does not exist.</p></div>} />
             </Routes>
           </main>
 
-          {/* Floating global chatbot widget */}
           <ChatWidget />
         </div>
       </div>
