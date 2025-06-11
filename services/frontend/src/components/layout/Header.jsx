@@ -1,60 +1,166 @@
-import React from 'react';
+import React, { useState } from 'react';
+import TrendingStocks from './TrendingStocks';
 import { Link } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { selectUnreadAlerts, selectWebsocketConnectionStatus } from '../../features/alerts/alertsSlice'; // Adjust path as needed
+import { useSelector, useDispatch } from 'react-redux';
+import {
+  selectUnreadAlerts,
+  selectWebsocketConnectionStatus,
+  markAlertAsRead,
+  clearAlerts
+} from '../../features/alerts/alertsSlice';
+
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  IconButton,
+  Badge,
+  Menu, // Make sure Menu is imported
+  MenuItem,
+  Box,
+  Divider,
+  ListItemText
+} from '@mui/material';
+
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import CloseIcon from '@mui/icons-material/Close';
 
 function Header() {
+  const dispatch = useDispatch();
   const unreadAlerts = useSelector(selectUnreadAlerts);
   const isWebsocketConnected = useSelector(selectWebsocketConnectionStatus);
 
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [showTrending, setShowTrending] = useState(false); // 🔧 Required
+
+  const open = Boolean(anchorEl);
+
+  const handleMenuClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleMarkAsRead = (alertId) => {
+    dispatch(markAlertAsRead(alertId));
+    if (unreadAlerts.length === 1) { // If this was the last unread alert, close the menu
+      setAnchorEl(null);
+    }
+  };
+
+  const handleClearAllAlerts = () => {
+    dispatch(clearAlerts());
+    setAnchorEl(null); // Close menu after clearing
+  };
+
   return (
-    <header style={{
-      backgroundColor: '#282c34',
-      color: 'white',
-      padding: '15px 20px',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-    }}>
-      <div style={{ fontSize: '24px', fontWeight: 'bold' }}>
-        <Link to="/" style={{ color: 'white', textDecoration: 'none' }}>
-          Market Dashboard
-        </Link>
-      </div>
-      <nav>
-        <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex' }}>
-          <li style={{ marginLeft: '20px' }}>
-            <Link to="/watchlist" style={{ color: 'white', textDecoration: 'none' }}>
+    <>
+      <AppBar position="static" sx={{ backgroundColor: '#282c34' }}>
+        <Toolbar>
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+            <Link to="/" style={{ color: 'white', textDecoration: 'none' }}>
+              Market Dashboard
+            </Link>
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Button color="inherit" component={Link} to="/watchlist">
               Watchlist
-            </Link>
-          </li>
-          <li style={{ marginLeft: '20px' }}>
-            <Link to="/relationships" style={{ color: 'white', textDecoration: 'none' }}>
+            </Button>
+            <Button color="inherit" component={Link} to="/relationships">
               Relationships
-            </Link>
-          </li>          
-          {/* Alert Indicator */}
-          <li style={{ marginLeft: '20px', position: 'relative' }}>
-            <span style={{ color: isWebsocketConnected ? 'lightgreen' : 'gray' }}>●</span> {/* Connection status indicator */}
-            Alerts {unreadAlerts.length > 0 && (
-              <span style={{
-                backgroundColor: 'red',
+            </Button>
+            <Button color="inherit" component={Link} to="/settings">
+              Settings
+            </Button>
+
+            {/* 🔥 Trending Stocks Button */}
+            <Button
+              onClick={() => setShowTrending(true)}
+              sx={{
+                ml: 2,
+                background: 'linear-gradient(to right, #ff416c, #ff4b2b)',
                 color: 'white',
-                borderRadius: '50%',
-                padding: '2px 6px',
-                fontSize: '12px',
-                position: 'absolute',
-                top: '-8px',
-                right: '-8px'
-              }}>
-                {unreadAlerts.length}
-              </span>
-            )}
-          </li>
-        </ul>
-      </nav>
-    </header>
+                fontWeight: 'bold',
+                '&:hover': {
+                  background: '#ff4b2b',
+                }
+              }}
+            >
+              🔥 Trending Stocks
+            </Button>
+
+            <IconButton
+              color="inherit"
+              aria-label="show alerts"
+              onClick={handleMenuClick}
+              sx={{ ml: 2 }}
+            >
+              <Badge badgeContent={unreadAlerts.length} color="error">
+                <NotificationsIcon />
+              </Badge>
+            </IconButton>
+            <Typography variant="caption" sx={{ ml: 1, color: isWebsocketConnected ? 'lightgreen' : 'gray' }}>
+              ●
+            </Typography>
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      {/* 🔔 Alert Notifications Menu */}
+      <Menu
+        id="alerts-menu"
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleMenuClose}
+        MenuListProps={{
+          'aria-labelledby': 'alerts-icon-button',
+        }}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+      >
+        {unreadAlerts.length === 0 ? (
+          <MenuItem onClick={handleMenuClose}>
+            <ListItemText primary="No new alerts" />
+          </MenuItem>
+        ) : (
+          <>
+            {unreadAlerts.map((alert) => (
+              <MenuItem key={alert.id} onClick={() => handleMarkAsRead(alert.id)}>
+                <ListItemText 
+                  primary={alert.message} 
+                  secondary={new Date(alert.timestamp).toLocaleTimeString()}
+                />
+                <IconButton 
+                  size="small" 
+                  onClick={(e) => { e.stopPropagation(); handleMarkAsRead(alert.id); }}
+                  sx={{ ml: 1 }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </MenuItem>
+            ))}
+            <Divider />
+            <MenuItem onClick={handleClearAllAlerts}>
+              <Button size="small" fullWidth>
+                Clear All Alerts
+              </Button>
+            </MenuItem>
+          </>
+        )}
+      </Menu>
+
+      {/* 🔳 Modal: Trending Stocks */}
+      <TrendingStocks open={showTrending} onClose={() => setShowTrending(false)} />
+    </>
   );
 }
 

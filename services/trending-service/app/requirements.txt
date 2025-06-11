@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+requests
+pymongo
+neo4j
+python-dotenv
