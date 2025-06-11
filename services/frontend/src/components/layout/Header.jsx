@@ -16,7 +16,7 @@ import {
   Button,
   IconButton,
   Badge,
-  Menu,
+  Menu, // Make sure Menu is imported
   MenuItem,
   Box,
   Divider,
@@ -46,14 +46,14 @@ function Header() {
 
   const handleMarkAsRead = (alertId) => {
     dispatch(markAlertAsRead(alertId));
-    if (unreadAlerts.length === 1) {
+    if (unreadAlerts.length === 1) { // If this was the last unread alert, close the menu
       setAnchorEl(null);
     }
   };
 
   const handleClearAllAlerts = () => {
     dispatch(clearAlerts());
-    setAnchorEl(null);
+    setAnchorEl(null); // Close menu after clearing
   };
 
   return (
@@ -77,20 +77,20 @@ function Header() {
             </Button>
 
             {/* 🔥 Trending Stocks Button */}
-           <Button
-  onClick={() => setShowTrending(true)}
-  sx={{
-    ml: 2,
-    background: 'linear-gradient(to right, #ff416c, #ff4b2b)',
-    color: 'white',
-    fontWeight: 'bold',
-    '&:hover': {
-      background: '#ff4b2b',
-    }
-  }}
->
-  🔥 Trending Stocks
-</Button>
+            <Button
+              onClick={() => setShowTrending(true)}
+              sx={{
+                ml: 2,
+                background: 'linear-gradient(to right, #ff416c, #ff4b2b)',
+                color: 'white',
+                fontWeight: 'bold',
+                '&:hover': {
+                  background: '#ff4b2b',
+                }
+              }}
+            >
+              🔥 Trending Stocks
+            </Button>
 
             <IconButton
               color="inherit"
@@ -108,6 +108,55 @@ function Header() {
           </Box>
         </Toolbar>
       </AppBar>
+
+      {/* 🔔 Alert Notifications Menu */}
+      <Menu
+        id="alerts-menu"
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleMenuClose}
+        MenuListProps={{
+          'aria-labelledby': 'alerts-icon-button',
+        }}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+      >
+        {unreadAlerts.length === 0 ? (
+          <MenuItem onClick={handleMenuClose}>
+            <ListItemText primary="No new alerts" />
+          </MenuItem>
+        ) : (
+          <>
+            {unreadAlerts.map((alert) => (
+              <MenuItem key={alert.id} onClick={() => handleMarkAsRead(alert.id)}>
+                <ListItemText 
+                  primary={alert.message} 
+                  secondary={new Date(alert.timestamp).toLocaleTimeString()}
+                />
+                <IconButton 
+                  size="small" 
+                  onClick={(e) => { e.stopPropagation(); handleMarkAsRead(alert.id); }}
+                  sx={{ ml: 1 }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </MenuItem>
+            ))}
+            <Divider />
+            <MenuItem onClick={handleClearAllAlerts}>
+              <Button size="small" fullWidth>
+                Clear All Alerts
+              </Button>
+            </MenuItem>
+          </>
+        )}
+      </Menu>
 
       {/* 🔳 Modal: Trending Stocks */}
       <TrendingStocks open={showTrending} onClose={() => setShowTrending(false)} />
