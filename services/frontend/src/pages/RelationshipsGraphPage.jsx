@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Container, Typography, Box, TextField, Button, CircularProgress, Alert } from '@mui/material';
 import ForceGraph2D from 'react-force-graph-2d';
 
