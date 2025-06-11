@@ -231,9 +231,9 @@ async def test_subscribe_endpoint(background_tasks: BackgroundTasks):
     # EXPANDED LIST OF TICKERS (50 unique popular symbols)
     default_tickers = [
         "AAPL", "MSFT", "GOOG", "AMZN", "TSLA", "NVDA", "NFLX", "META", "IBM", "ORCL"
-        # "JPM", "V", "MA", "DIS", "KO", "PEP", "INTC", "CSCO", "CMCSA", "T",
-        # "VZ", "ADBE", "CRM", "PYPL", "SBUX", "COST", "HD", "PG", "NKE", "WMT",
-        # "XOM", "CVX", "BAC", "WFC", "GS", "MS", "C", "PFE", "JNJ", "UNH",
-        # "MRK", "ABBV", "LLY", "MCD", "BA", "GE", "CAT", "MMM", "GSK", "BHP" # Added more tickers
+        "JPM", "V", "MA", "DIS", "KO", "PEP", "INTC", "CSCO", "CMCSA", "T",
+        "VZ", "ADBE", "CRM", "PYPL", "SBUX", "COST", "HD", "PG", "NKE", "WMT",
+        "XOM", "CVX", "BAC", "WFC", "GS", "MS", "C", "PFE", "JNJ", "UNH",
+        "MRK", "ABBV", "LLY", "MCD", "BA", "GE", "CAT", "MMM", "GSK", "BHP" # Added more tickers
     ]
     return await subscribe_tickers(default_tickers, background_tasks)
