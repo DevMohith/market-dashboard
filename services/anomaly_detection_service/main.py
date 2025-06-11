@@ -84,7 +84,7 @@ async def startup_event():
         if "BUSYGROUP" in str(e):
             print(f"Redis consumer group '{REDIS_GROUP}' already exists.")
         else:
-            print(f"❌ Error creating Redis consumer group: {e}")
+            print(f" Error creating Redis consumer group: {e}")
 
     app.state.stream_reader_task = asyncio.create_task(read_from_redis_stream())
     print("Redis stream reader task started.")
@@ -92,7 +92,7 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    print("🛑 Anomaly Detection Service: Shutting down...")
+    print(" Anomaly Detection Service: Shutting down...")
     app.state.stream_reader_task.cancel()
     try:
         await app.state.stream_reader_task
@@ -110,8 +110,8 @@ async def shutdown_event():
     watchlist_refresher_tasks.clear()
 
     await app.state.redis.close()
-    print("✅ Anomaly Detection Service: Redis connection closed")
-    print("🛑 Anomaly Detection Service: Shutdown complete.")
+    print(" Anomaly Detection Service: Redis connection closed")
+    print(" Anomaly Detection Service: Shutdown complete.")
 
 # --- Watchlist Refresh Logic ---
 async def fetch_watchlist_from_service(user_id: str):

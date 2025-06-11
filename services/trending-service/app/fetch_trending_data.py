@@ -4,7 +4,7 @@ import random
 
 API_KEY = os.getenv("TWELVE_API_KEY")
 
-def fetch_top_volume_stocks(limit=100):
+def fetch_top_volume_stocks(limit=10):
     url = f"https://api.twelvedata.com/stocks?source=docs&apikey={API_KEY}"
     response = requests.get(url)
     
