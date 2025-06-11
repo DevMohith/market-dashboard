@@ -11,6 +11,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Start FastAPI app
-CMD ["uvicorn", "mongo_to_neo4j:app", "--host", "0.0.0.0", "--port", "8012"]
-
-
+CMD ["uvicorn", "mongo_to_neo4j:app", "--host", "0.0.0.0", "--port", "8001"]
