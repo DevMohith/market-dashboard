@@ -95,9 +95,9 @@ function DashboardPage() {
                 No matching stocks for "{searchQuery}"
               </Typography>
             ) : filteredAndSortedPrices.length === 0 ? (
-                <Typography variant="body1" color="textSecondary">
-                    Waiting for real-time market data...
-                </Typography>
+              <Typography variant="body1" color="textSecondary">
+                {isMarketDataWebsocketConnected ? '📉 Market Closed - No live data available' : 'Waiting for real-time market data...'}
+              </Typography>
             ) : (
               <List dense sx={{ flexGrow: 1 }}>
                 {currentPrices.map((stock) => (
@@ -112,6 +112,7 @@ function DashboardPage() {
                 ))}
               </List>
             )}
+
             {/* Pagination for Prices */}
             {totalPagesPrices > 1 && (
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
