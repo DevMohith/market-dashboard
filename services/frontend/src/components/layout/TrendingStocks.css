@@ -1,50 +1,64 @@
-.trending-modal {
+.trending-overlay {
   position: fixed;
-  top: 80px;
-  right: 80px;
-  background: white;
-  border: 2px solid #ff4b2b;
-  padding: 20px;
-  border-radius: 10px;
-  z-index: 9999;
-  width: 420px;
-  max-height: 600px;
-  overflow-y: auto;
-  box-shadow: 0 0 15px rgba(0,0,0,0.15);
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
 }
 
-.modal-header {
+.trending-modal {
+  background: white;
+  width: 90%;
+  max-width: 800px;
+  max-height: 80vh;
+  padding: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+.trending-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 10px;
 }
 
-.stock-card {
-  margin-bottom: 14px;
+.trending-body {
+  overflow-y: auto;
+  flex-grow: 1;
+  padding-right: 8px;
 }
 
-.stock-title {
-  font-size: 14px;
-  margin-bottom: 6px;
+.trending-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
-.progress-container {
-  background-color: #eee;
-  border-radius: 10px;
-  height: 20px;
-  position: relative;
+.trending-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
 }
 
-.progress-bar {
-  height: 100%;
-  background-color: #ff4b2b;
-  transition: width 0.4s ease;
+.stock-name {
+  font-weight: bold;
 }
 
-.progress-container span {
-  position: absolute;
-  right: 10px;
-  top: 0;
-  font-size: 12px;
-  color: #222;
+.stock-symbol {
+  color: gray;
+}
+
+.investment {
+  color: green;
 }

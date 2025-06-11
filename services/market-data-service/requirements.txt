@@ -4,3 +4,4 @@ websocket-client
 redis>=4.2.0
 python-dotenv
 websocket-client
+prometheus_client

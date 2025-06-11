@@ -84,15 +84,11 @@ async def close_neo4j_driver():
 async def populate_initial_data():
     driver = await get_neo4j_driver()
     async with driver.session() as session:
-        # Check if data already exists to avoid duplicates
-        result = await session.run("MATCH (n:Company) RETURN count(n) AS nodeCount")
-        record = await result.single()
-        if record and record["nodeCount"] > 0:
-            print("ℹ️ Neo4j already contains data. Skipping initial population.")
-            return
-
-        print("🚀 Populating initial Neo4j data...")
-        # Create companies
+        # Removed the check for existing data.
+        # MERGE statements are idempotent and will ensure data is present.
+        print("🚀 Attempting to populate/ensure initial Neo4j data...")
+        
+        # Create all company nodes
         await session.run("""
             MERGE (a:Company {symbol: 'AAPL', name: 'Apple Inc.'})
             MERGE (m:Company {symbol: 'MSFT', name: 'Microsoft Corp.'})
@@ -104,22 +100,108 @@ async def populate_initial_data():
             MERGE (pep:Company {symbol: 'PEP', name: 'PepsiCo Inc.'})
             MERGE (amz:Company {symbol: 'AMZN', name: 'Amazon.com Inc.'})
             MERGE (dis:Company {symbol: 'DIS', name: 'Walt Disney Co.'})
+            MERGE (ibm:Company {symbol: 'IBM', name: 'International Business Machines Corp.'})
+            MERGE (adbe:Company {symbol: 'ADBE', name: 'Adobe Inc.'})
+            MERGE (wmt:Company {symbol: 'WMT', name: 'Walmart Inc.'})
+            MERGE (nflx:Company {symbol: 'NFLX', name: 'Netflix Inc.'})
+            MERGE (orcl:Company {symbol: 'ORCL', name: 'Oracle Corp.'})
+            MERGE (f:Company {symbol: 'F', name: 'Ford Motor Co.'})
+            MERGE (gm:Company {symbol: 'GM', name: 'General Motors Co.'})
+            MERGE (tgt:Company {symbol: 'TGT', name: 'Target Corp.'})
+            MERGE (vwagy:Company {symbol: 'VWAGY', name: 'Volkswagen AG'})
+            MERGE (poahy:Company {symbol: 'POAHY', name: 'Porsche Automobil Holding SE'})
+            MERGE (byddy:Company {symbol: 'BYDDY', name: 'BYD Co. Ltd.'})
+            MERGE (tm:Company {symbol: 'TM', name: 'Toyota Motor Corp.'})
+            MERGE (beats:Company {symbol: 'BEATS', name: 'Beats Electronics'})
         """)
         
-        # Create relationships (split into individual MERGE statements for robustness)
-        await session.run("MATCH (a:Company {symbol: 'AAPL'}), (m:Company {symbol: 'MSFT'}) MERGE (a)-[:COMPETES_WITH]->(m)")
-        await session.run("MATCH (a:Company {symbol: 'AAPL'}), (g:Company {symbol: 'GOOG'}) MERGE (a)-[:COMPETES_WITH]->(g)")
-        await session.run("MATCH (m:Company {symbol: 'MSFT'}), (g:Company {symbol: 'GOOG'}) MERGE (m)-[:COMPETES_WITH]->(g)")
-        await session.run("MATCH (ts:Company {symbol: 'TSLA'}), (m:Company {symbol: 'MSFT'}) MERGE (ts)-[:SUPPLIES]->(m)")
-        await session.run("MATCH (nvd:Company {symbol: 'NVDA'}), (ts:Company {symbol: 'TSLA'}) MERGE (nvd)-[:SUPPLIES]->(ts)")
-        await session.run("MATCH (s:Company {symbol: 'SBUX'}), (ko:Company {symbol: 'KO'}) MERGE (s)-[:PARTNERS_WITH]->(ko)")
-        await session.run("MATCH (ko:Company {symbol: 'KO'}), (pep:Company {symbol: 'PEP'}) MERGE (ko)-[:COMPETES_WITH]->(pep)")
-        await session.run("MATCH (a:Company {symbol: 'AAPL'}), (amz:Company {symbol: 'AMZN'}) MERGE (a)-[:SELLS_THROUGH]->(amz)")
-        await session.run("MATCH (dis:Company {symbol: 'DIS'}), (amz:Company {symbol: 'AMZN'}) MERGE (dis)-[:DISTRIBUTES_THROUGH]->(amz)")
-        await session.run("MATCH (dis:Company {symbol: 'DIS'}), (s:Company {symbol: 'SBUX'}) MERGE (dis)-[:HAS_STORE_IN]->(s)")
-        await session.run("MATCH (nvd:Company {symbol: 'NVDA'}), (g:Company {symbol: 'GOOG'}) MERGE (nvd)-[:SUPPLIES]->(g)")
-        # This last one creates a new node within the query itself
-        await session.run("MATCH (a:Company {symbol: 'AAPL'}) MERGE (a)-[:OWNS {subsidiary: 'Beats Electronics'}]->(:Company {symbol: 'BEATS', name: 'Beats Electronics'})")
+        # Create all relationships
+        await session.run("""
+            MATCH (a:Company {symbol: 'AAPL'})
+            MATCH (m:Company {symbol: 'MSFT'})
+            MATCH (g:Company {symbol: 'GOOG'})
+            MATCH (ts:Company {symbol: 'TSLA'})
+            MATCH (nvd:Company {symbol: 'NVDA'})
+            MATCH (s:Company {symbol: 'SBUX'})
+            MATCH (ko:Company {symbol: 'KO'})
+            MATCH (pep:Company {symbol: 'PEP'})
+            MATCH (amz:Company {symbol: 'AMZN'})
+            MATCH (dis:Company {symbol: 'DIS'})
+            MATCH (ibm:Company {symbol: 'IBM'})
+            MATCH (adbe:Company {symbol: 'ADBE'})
+            MATCH (wmt:Company {symbol: 'WMT'})
+            MATCH (nflx:Company {symbol: 'NFLX'})
+            MATCH (orcl:Company {symbol: 'ORCL'})
+            MATCH (f:Company {symbol: 'F'})
+            MATCH (gm:Company {symbol: 'GM'})
+            MATCH (tgt:Company {symbol: 'TGT'})
+            MATCH (vwagy:Company {symbol: 'VWAGY'})
+            MATCH (poahy:Company {symbol: 'POAHY'})
+            MATCH (byddy:Company {symbol: 'BYDDY'})
+            MATCH (tm:Company {symbol: 'TM'})
+            MATCH (beats:Company {symbol: 'BEATS'})
+
+            MERGE (a)-[:COMPETES_WITH]->(m)
+            MERGE (a)-[:COMPETES_WITH]->(g)
+            MERGE (m)-[:COMPETES_WITH]->(g)
+            MERGE (ts)-[:SUPPLIES_SOFTWARE_TO]->(m)
+            MERGE (nvd)-[:SUPPLIES_CHIPS_TO]->(ts)
+            MERGE (s)-[:PARTNERS_WITH]->(ko)
+            MERGE (ko)-[:COMPETES_WITH]->(pep)
+            MERGE (a)-[:SELLS_THROUGH]->(amz)
+            MERGE (dis)-[:DISTRIBUTES_THROUGH]->(amz)
+            MERGE (dis)-[:HAS_STORE_IN]->(s)
+            MERGE (nvd)-[:SUPPLIES_TO]->(g)
+            MERGE (a)-[:OWNS {subsidiary: 'Beats Electronics'}]->(beats)
+            
+            
+            MERGE (ibm)-[:COMPETES_WITH]->(m)
+            MERGE (ibm)-[:COMPETES_WITH]->(g)
+            MERGE (ibm)-[:BUYS_FROM]->(nvd)
+            MERGE (ibm)-[:COMPETES_WITH]->(orcl)
+
+           
+            MERGE (amz)-[:COMPETES_WITH]->(g)
+            MERGE (adbe)-[:PARTNERS_WITH]->(m)
+            MERGE (adbe)-[:COMPETES_WITH]->(orcl)
+            MERGE (wmt)-[:COMPETES_WITH]->(amz)
+            MERGE (wmt)-[:COMPETES_WITH]->(tgt)
+            MERGE (nflx)-[:COMPETES_WITH]->(dis)
+            MERGE (nflx)-[:COMPETES_WITH]->(amz)
+            MERGE (nflx)-[:ADVERTISING_ON]->(g)
+            MERGE (orcl)-[:COMPETES_WITH]->(m)
+            MERGE (ts)-[:BUYS_SOFTWARE_FROM]->(m)
+            MERGE (ts)-[:BUYS_CHIPS_FROM]->(nvd)
+            MERGE (f)-[:COMPETES_WITH]->(ts)
+            MERGE (f)-[:COMPETES_WITH]->(gm)
+            MERGE (gm)-[:COMPETES_WITH]->(ts)
+            MERGE (gm)-[:COMPETES_WITH]->(byddy)
+            MERGE (tgt)-[:COMPETES_WITH]->(amz)
+            MERGE (s)-[:COMPETES_WITH]->(pep)
+
+            
+            MERGE (vwagy)-[:COMPETES_WITH]->(ts)
+            MERGE (vwagy)-[:COMPETES_WITH]->(byddy)
+            MERGE (vwagy)-[:COMPETES_WITH]->(gm)
+            MERGE (vwagy)-[:COMPETES_WITH]->(f)
+            MERGE (vwagy)-[:COMPETES_WITH]->(tm)
+            MERGE (vwagy)-[:OWNS]->(poahy)
+
+            MERGE (poahy)-[:OWNED_BY]->(vwagy)
+            MERGE (poahy)-[:COMPETES_WITH]->(ts)
+
+            MERGE (byddy)-[:COMPETES_WITH]->(ts)
+            MERGE (byddy)-[:COMPETES_WITH]->(vwagy)
+            MERGE (byddy)-[:COMPETES_WITH]->(gm)
+
+            MERGE (tm)-[:COMPETES_WITH]->(ts)
+            MERGE (tm)-[:COMPETES_WITH]->(vwagy)
+            MERGE (tm)-[:COMPETES_WITH]->(gm)
+            MERGE (tm)-[:COMPETES_WITH]->(f)
+            MERGE (tm)-[:COMPETES_WITH]->(byddy)
+
+            MERGE (nvd)-[:SUPPLIES_AI_COMPUTING_TO]->(vwagy)
+        """)
         
         print("✅ Initial Neo4j data populated.")
 
@@ -127,7 +209,7 @@ async def populate_initial_data():
 @app.on_event("startup")
 async def startup_event():
     await get_neo4j_driver()
-    await populate_initial_data()
+    await populate_initial_data() # This will now always attempt to MERGE data
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -137,28 +219,29 @@ async def shutdown_event():
 @app.get("/relationships/{symbol}", response_model=GraphData)
 async def get_company_relationships(symbol: str):
     """
-    Fetches direct relationships for a given company symbol.
+    Fetches direct relationships for a given company symbol from the already populated Neo4j.
     """
     driver = await get_neo4j_driver()
     
+    symbol_upper = symbol.upper()
     nodes_data: List[Dict[str, Any]] = []
     links_data: List[Dict[str, Any]] = []
     
     seen_node_ids: Set[str] = set()
     seen_link_hashes: Set[frozenset] = set()
 
-    print(f"DEBUG (Backend): Fetching relationships for symbol: {symbol.upper()}")
+    print(f"DEBUG (Backend): Processing request for symbol: {symbol_upper}")
 
     async with driver.session() as session:
         # 1. Fetch the central node first
         central_node_result = await session.run(
             "MATCH (n:Company {symbol: $symbol}) RETURN n",
-            symbol=symbol.upper()
+            symbol=symbol_upper
         )
         central_node_record = await central_node_result.single()
         
         if not central_node_record:
-            print(f"DEBUG (Backend): Central node '{symbol.upper()}' not found.")
+            print(f"DEBUG (Backend): Central node '{symbol_upper}' not found in populated data.")
             return GraphData(nodes=[], links=[])
 
         n_data = central_node_record["n"]
@@ -171,17 +254,14 @@ async def get_company_relationships(symbol: str):
                 type="Company"
             ).dict())
             seen_node_ids.add(node_id)
-            # print(f"DEBUG (Backend): Added central node: {node_id}") # Commenting out for cleaner logs
-
+            
         # 2. Fetch all relationships and connected nodes for the central node
-        # This query ensures that for each record, n, r, and m are all present
-        # if a relationship exists.
         relationships_result = await session.run(
             """
             MATCH (n:Company {symbol: $symbol})-[r]-(m:Company)
             RETURN n, r, m
             """,
-            symbol=symbol.upper()
+            symbol=symbol_upper
         )
 
         async for record in relationships_result:
@@ -199,7 +279,6 @@ async def get_company_relationships(symbol: str):
                     type="Company"
                 ).dict())
                 seen_node_ids.add(source_id)
-                # print(f"DEBUG (Backend): Added source node for link: {source_id}") # Commenting out for cleaner logs
             
             # Add target node if not already added
             target_id = target_node_data["symbol"]
@@ -211,22 +290,17 @@ async def get_company_relationships(symbol: str):
                     type="Company"
                 ).dict())
                 seen_node_ids.add(target_id)
-                # print(f"DEBUG (Backend): Added target node for link: {target_id}") # Commenting out for cleaner logs
-
-            # Add relationship link (deduplicate based on source, target, type)
+                
             link_type = relationship_data.type
-            # Use frozenset for a unique hashable representation for a link,
-            # treating A-R-B as the same link as B-R-A if undirected.
             link_hash = frozenset({source_id, target_id, link_type})
 
             if link_hash not in seen_link_hashes:
                 links_data.append(GraphLink(source=source_id, target=target_id, type=link_type).dict())
                 seen_link_hashes.add(link_hash)
-                # print(f"DEBUG (Backend): Added link: {source_id}-[{link_type}]->{target_id}") # Commenting out for cleaner logs
 
     # Final lists to return
     final_nodes = [node for node in nodes_data if node['id'] in seen_node_ids] 
-    final_links = links_data
+    final_links = links_data 
 
     print(f"DEBUG (Backend): Final nodes to return: {len(final_nodes)} nodes")
     print(f"DEBUG (Backend): Final links to return: {len(final_links)} links")
