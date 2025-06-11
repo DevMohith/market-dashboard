@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import CloseIcon from '@mui/icons-material/Close';
+import TrendingStocks from './TrendingStocks';
 
 function Header() {
   const dispatch = useDispatch();
@@ -64,7 +65,23 @@ function Header() {
           <Button color="inherit" component={Link} to="/settings">
             Settings
           </Button>
+          
+          <Button
+  onClick={() => setShowTrending(true)}
+  sx={{
+    ml: 2,
+    background: 'linear-gradient(to right, #ff416c, #ff4b2b)',
+    color: 'white',
+    fontWeight: 'bold',
+    '&:hover': {
+      background: '#ff4b2b'
+    }
+  }}
+>
+  🔥 Trending Stocks
+</Button>
 
+          
           {/* Alert Indicator and Dropdown */}
           <IconButton
             color="inherit"

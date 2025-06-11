@@ -1,0 +1,50 @@
+.trending-modal {
+  position: fixed;
+  top: 80px;
+  right: 80px;
+  background: white;
+  border: 2px solid #ff4b2b;
+  padding: 20px;
+  border-radius: 10px;
+  z-index: 9999;
+  width: 420px;
+  max-height: 600px;
+  overflow-y: auto;
+  box-shadow: 0 0 15px rgba(0,0,0,0.15);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stock-card {
+  margin-bottom: 14px;
+}
+
+.stock-title {
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.progress-container {
+  background-color: #eee;
+  border-radius: 10px;
+  height: 20px;
+  position: relative;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #ff4b2b;
+  transition: width 0.4s ease;
+}
+
+.progress-container span {
+  position: absolute;
+  right: 10px;
+  top: 0;
+  font-size: 12px;
+  color: #222;
+}

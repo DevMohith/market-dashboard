@@ -13,6 +13,7 @@ import WatchlistPage from './pages/WatchlistPage';
 import StockDetailPage from './pages/StockDetailPage';
 import RelationshipsGraphPage from './pages/RelationshipsGraphPage';
 import ChatWidget from './components/layout/ChatWidget';
+import TrendingStocks from './components/layout/TrendingStocks';
 
 // Import Redux actions/thunks
 import { initMarketDataWebSocket } from './features/marketData/marketDataSlice';
@@ -42,6 +43,7 @@ function App() {
               <Route path="/stock/:symbol" element={<StockDetailPage />} />
               <Route path="/relationships" element={<RelationshipsGraphPage />} />
               <Route path="/watchlist" element={<WatchlistPage />} />
+              <Route path="/TrendingStocks" element={<TrendingStocks />} />
               <Route path="*" element={<div><h1>404: Page Not Found</h1><p>The page you are looking for does not exist.</p></div>} />
             </Routes>
           </main>
