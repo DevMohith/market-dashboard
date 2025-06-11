@@ -1,45 +1,54 @@
-// File: services/frontend/src/components/layout/TrendingStocks.jsx
 import React, { useEffect, useState } from 'react';
 import './TrendingStocks.css';
 
-const TrendingStocks = ({ onClose }) => {
-  const [stocks, setStocks] = useState([]);
+function TrendingStocks({ open, onClose }) {
+  const [trendingData, setTrendingData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchTrending = async () => {
-      try {
-        const response = await fetch('http://localhost:8010/trending');
-        const data = await response.json();
-        setStocks(data.trending_stocks);
-      } catch (err) {
-        console.error('Failed to fetch trending stocks:', err);
-      }
-    };
+    if (open) {
+      fetch('http://localhost:8010/trending')
+        .then(res => res.json())
+        .then(data => {
+          setTrendingData(data.trending_stocks || []);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error("Error fetching trending stocks:", err);
+          setLoading(false);
+        });
+    }
+  }, [open]);
 
-    fetchTrending();
-  }, []);
+  if (!open) return null;
 
   return (
-    <div className="trending-modal">
-      <div className="modal-header">
-        <h2>🔥 Trending Stocks</h2>
-        <button onClick={onClose}>X</button>
-      </div>
-      <div className="modal-body">
-        {stocks.map((stock, idx) => (
-          <div key={idx} className="stock-card">
-            <div className="stock-title">
-              <strong>{stock.symbol}</strong> — {stock.name}
-            </div>
-            <div className="progress-container">
-              <div className="progress-bar" style={{ width: `${stock.investment_percent}%` }} />
-              <span>{stock.investment_percent}%</span>
-            </div>
-          </div>
-        ))}
+    <div className="trending-overlay">
+      <div className="trending-modal">
+        <div className="trending-header">
+          <h2>🔥 Trending Stocks</h2>
+          <button className="close-btn" onClick={onClose}>✖</button>
+        </div>
+        <div className="trending-body">
+          {loading ? (
+            <p>Loading...</p>
+          ) : trendingData.length === 0 ? (
+            <p>No trending stocks available.</p>
+          ) : (
+            <ul className="trending-list">
+              {trendingData.map((stock, idx) => (
+                <li key={idx} className="trending-item">
+                  <span className="stock-name">{stock.name}</span>
+                  <span className="stock-symbol">({stock.symbol})</span>
+                  <span className="investment">📈 {stock.investment_percent}%</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </div>
   );
-};
+}
 
 export default TrendingStocks;
