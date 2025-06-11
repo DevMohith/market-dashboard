@@ -41,7 +41,7 @@ app.add_middleware(
  
 # Environment variables
 FINNHUB_API_KEY = os.getenv("FINNHUB_API_KEY")
-REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_HOST = os.getenv("REDIS_HOST", "mohith-redis")
 REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 REDIS_STREAM = os.getenv("REDIS_STREAM", "market:stream")
  

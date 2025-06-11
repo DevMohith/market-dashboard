@@ -2,3 +2,4 @@ fastapi
 uvicorn
 redis[async]
 python-dotenv
+uvicorn[standard]

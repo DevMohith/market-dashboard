@@ -1,5 +1,5 @@
 #official py image
-FROM python:3.10-bookworm
+FROM python:3.10-slim
 #my dir
 WORKDIR /app
 #my dep file

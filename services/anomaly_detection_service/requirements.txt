@@ -1,4 +1,6 @@
 fastapi
-uvicorn
+uvicorn[standard]
 redis[async] # For async Redis client
 python-dotenv
+httpx
+websocket-client
