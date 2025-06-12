@@ -16,7 +16,7 @@ import {
   Button,
   IconButton,
   Badge,
-  Menu, // Make sure Menu is imported
+  Menu, // Make sure Menu is imported 
   MenuItem,
   Box,
   Divider,
@@ -72,9 +72,9 @@ function Header() {
             <Button color="inherit" component={Link} to="/relationships">
               Relationships
             </Button>
-            <Button color="inherit" component={Link} to="/settings">
+            {/* <Button color="inherit" component={Link} to="/settings">
               Settings
-            </Button>
+            </Button> */}
 
             {/* 🔥 Trending Stocks Button */}
             <Button
