@@ -34,7 +34,7 @@ async def chat_endpoint(request: QueryRequest):
     query = request.question
     top_k = request.top_k
 
-    # Check for live stock question first
+    # Check for live stock question first (Redis)
     live_response = check_live_stock_question(query)
     if live_response:
         return {"answer": live_response}
