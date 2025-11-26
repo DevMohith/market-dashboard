@@ -55,7 +55,6 @@ npm install
 npm run dev
 This starts the development server at:
 
-**http://localhost:5173** 
 
 Ensure the backend containers are running before starting the frontend to prevent WebSocket connection errors.
 
@@ -86,10 +85,10 @@ socket.io-client or native WebSocket
 {{{ we have created requirements.txt files for each services everything but how ever we containerized app with docker will will also runs all dependecies when building image}}}}
 
 Troubleshooting
-❌ WebSocket Disconnected?
+ WebSocket Disconnected?
 Ensure realtime-gateway is running and has access to Redis.
 
-❌ MongoDB or Neo4j errors?
+ MongoDB or Neo4j errors?
 Check that .env uses container names (e.g., mongo, neo4j) instead of localhost.
 
 Use docker logs <container_name> to debug individual services.
