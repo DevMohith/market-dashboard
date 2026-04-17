@@ -68,11 +68,9 @@ function Sidebar() {
               mx: 1,
               mb: 0.5,
               transition: 'background-color 0.3s ease, color 0.3s ease',
-              // Active link style - remains blue
               backgroundColor: location.pathname === item.path ? '#3498db' : 'transparent',
               '&:hover': {
-                // On hover, make it blue (the same as active or slightly different shade)
-                backgroundColor: '#2980b9', // A slightly darker blue for hover effect
+                backgroundColor: '#2980b9',
                 color: 'white',
               },
             }}
