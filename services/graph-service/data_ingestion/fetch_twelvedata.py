@@ -2,6 +2,7 @@ from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.database import Database
 from typing import Dict, Optional, Any
+import os
 import requests  
 from requests import Response  
 
@@ -11,7 +12,6 @@ db: Database[Any] = client["stock_data"]
 companies_collection: Collection[Dict[str, Any]] = db["companies"]
 
 # Twelve Data API setup
-API_KEY = "887f8ca2776d40e7904c46c5daab595b"
 BASE_URL = "https://api.twelvedata.com"
 
 tickers = ["AAPL", "GOOGL", "MSFT", "AMZN", "TSLA", "META", "NFLX", "NVDA"]
